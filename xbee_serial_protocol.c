@@ -2,6 +2,7 @@
 #include "xbee_serial_protocol.h"
 
 unsigned char broadcastTransmission = 1, operatingMode;
+volatile struct bufferStruct receiveBuffer;
 
 // TODO: Return error if verification fails
 unsigned char changeOperatingMode(unsigned char mode)
@@ -9,11 +10,10 @@ unsigned char changeOperatingMode(unsigned char mode)
     unsigned char* parameters;
     unsigned char errorStatus = 0;
     
-    operatingMode = mode;
-    
     switch(mode)
     {
         case AT_MODE:
+            operatingMode = mode;
             delay_ms(1000);
             printf("Sending AT Start Sequence...");
             issue_AT_command(AT_START_SEQUENCE, parameters);
@@ -35,6 +35,7 @@ unsigned char changeOperatingMode(unsigned char mode)
             issue_AT_command(EXIT_COMMAND_MODE, parameters);
             break;
         case API_MODE_NO_ESCAPE:
+            operatingMode = AT_MODE;
             delay_ms(1000);
             printf("Sending AT Start Sequence...");
             issue_AT_command(AT_START_SEQUENCE, parameters);
@@ -45,8 +46,10 @@ unsigned char changeOperatingMode(unsigned char mode)
             issue_AT_command(READ_OPERATING_MODE, parameters);
             printf("Committing changes and exiting Command Mode...");
             issue_AT_command(EXIT_COMMAND_MODE, parameters);
+            operatingMode = API_MODE_NO_ESCAPE;
             break;
         case API_MODE_WITH_ESCAPE:
+            operatingMode = AT_MODE;
             delay_ms(1000);
             printf("Sending AT Start Sequence...");
             issue_AT_command(AT_START_SEQUENCE, parameters);
@@ -57,6 +60,7 @@ unsigned char changeOperatingMode(unsigned char mode)
             issue_AT_command(READ_OPERATING_MODE, parameters);
             printf("Committing changes and exiting Command Mode...");
             issue_AT_command(EXIT_COMMAND_MODE, parameters);
+            operatingMode = API_MODE_WITH_ESCAPE;
             break;
         default:
             break;
@@ -65,9 +69,9 @@ unsigned char changeOperatingMode(unsigned char mode)
     return errorStatus;
 }
 
-unsigned char* issue_AT_command(unsigned char command, unsigned char* parameters)
+void issue_AT_command(unsigned char command, unsigned char* parameters)
 {
-    unsigned char outBuffer[25], inBuffer[25], messageLength, responseLength = 0, response = 0, i;
+    unsigned char outBuffer[25], messageLength, i;
     
     switch(command)
     {
@@ -168,6 +172,14 @@ unsigned char* issue_AT_command(unsigned char command, unsigned char* parameters
             outBuffer[11] = parameters[7];
             outBuffer[12] = '\r';
             break;
+        case CHANGE_BAUD:
+            messageLength = 6;
+            outBuffer[0] = 'A';
+            outBuffer[1] = 'T';
+            outBuffer[2] = 'B';
+            outBuffer[3] = 'D';
+            outBuffer[4] = parameters[0];
+            outBuffer[5] = '\r';
         default:
             break;
     }
@@ -181,21 +193,17 @@ unsigned char* issue_AT_command(unsigned char command, unsigned char* parameters
         }
     }
     
-    // Change this to an ISR
-    responseLength = 0;
-    while(response != '\r')
-    {
-        inBuffer[responseLength] = readByte();
-        response = inBuffer[responseLength++];
-    }
+    while(!receiveFlag); // wait for response
+    receiveFlag = 0;
 
-    for(i = 0; i < responseLength; i++)
+    for(i = 0; i < receiveBuffer.numBytes - 1; i++)
     {
-        printf("%c", inBuffer[i]);
+        printf("%c", receiveBuffer.buffer[i]);
     }
     printf("\n");
-   
-    return inBuffer;
+    
+    receiveBuffer.numBytes = 0;
+    receiveBuffer.currentIndex = 0;
 }
 
 void sendData(unsigned char* dataBuffer, unsigned char messageLength)

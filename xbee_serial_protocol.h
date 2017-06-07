@@ -11,6 +11,7 @@
 #define API_MODE_WITH_ESCAPE 7
 #define AT_MODE 8
 #define READ_OPERATING_MODE 9
+#define CHANGE_BAUD 10
 
 // API IDs
 #define TRANSMIT_REQUEST 0x10
@@ -24,9 +25,17 @@
 #define DELIMITER 0x7E
 
 extern unsigned char broadcastTransmission, operatingMode;
+extern volatile unsigned char receiveFlag;
+
+extern struct bufferStruct
+{
+    unsigned char buffer[128];
+    unsigned char numBytes;
+    unsigned char currentIndex;
+};
 
 unsigned char changeOperatingMode(unsigned char mode);
-unsigned char* issue_AT_command(unsigned char command, unsigned char* parameters);
+void issue_AT_command(unsigned char command, unsigned char* parameters);
 void sendData(unsigned char* dataBuffer, unsigned char messageLength);
 void sendByte(unsigned char dataByte);
 unsigned char readByte();
