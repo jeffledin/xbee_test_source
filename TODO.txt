@@ -6,3 +6,4 @@ Allow node to change between coordinator, router, and end device
 Have PIC read starting baudrate from EEPROM
 Add escape mode
 Add more baudrate configurations for XBee
+Remove unnecessary delays
