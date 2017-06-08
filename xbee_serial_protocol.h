@@ -12,6 +12,9 @@
 #define AT_MODE 8
 #define READ_OPERATING_MODE 9
 #define CHANGE_BAUD 10
+#define APPLY_CHANGES 11
+#define SAVE_THROUGH_RESET 12
+#define READ_BAUD 13
 
 // API IDs
 #define TRANSMIT_REQUEST 0x10
@@ -24,6 +27,9 @@
 
 #define DELIMITER 0x7E
 
+#define BAUD_9600   1
+#define BAUD_115200 2
+
 extern unsigned char broadcastTransmission, operatingMode;
 extern volatile unsigned char receiveFlag;
 
@@ -34,7 +40,8 @@ extern struct bufferStruct
     unsigned char currentIndex;
 };
 
-unsigned char changeOperatingMode(unsigned char mode);
+unsigned char changeXBeeOperatingMode(unsigned char mode);
+unsigned char changeXBeeBaudrate(unsigned char baudrate);
 void issue_AT_command(unsigned char command, unsigned char* parameters);
 void sendData(unsigned char* dataBuffer, unsigned char messageLength);
 void sendByte(unsigned char dataByte);

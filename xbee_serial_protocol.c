@@ -5,7 +5,7 @@ unsigned char broadcastTransmission = 1, operatingMode;
 volatile struct bufferStruct receiveBuffer;
 
 // TODO: Return error if verification fails
-unsigned char changeOperatingMode(unsigned char mode)
+unsigned char changeXBeeOperatingMode(unsigned char mode)
 {
     unsigned char* parameters;
     unsigned char errorStatus = 0;
@@ -36,6 +36,7 @@ unsigned char changeOperatingMode(unsigned char mode)
             break;
         case API_MODE_NO_ESCAPE:
             operatingMode = AT_MODE;
+            broadcastTransmission = 0; // no longer in broadcast mode
             delay_ms(1000);
             printf("Sending AT Start Sequence...");
             issue_AT_command(AT_START_SEQUENCE, parameters);
@@ -50,6 +51,7 @@ unsigned char changeOperatingMode(unsigned char mode)
             break;
         case API_MODE_WITH_ESCAPE:
             operatingMode = AT_MODE;
+            broadcastTransmission = 0; // no longer in broadcast mode
             delay_ms(1000);
             printf("Sending AT Start Sequence...");
             issue_AT_command(AT_START_SEQUENCE, parameters);
@@ -66,9 +68,70 @@ unsigned char changeOperatingMode(unsigned char mode)
             break;
     }
     
+    printf("\n");
+    
     return errorStatus;
 }
 
+// TODO: Error status
+unsigned char changeXBeeBaudrate(unsigned char baud_select)
+{
+    unsigned char* parameters;
+    unsigned char errorStatus = 0;
+    
+    switch(baud_select)
+    {
+        case BAUD_9600:
+            printf("Changing XBee baudrate to 9600 bps...\n");
+            delay_ms(1000);
+            printf("Sending AT Start Sequence...");
+            issue_AT_command(AT_START_SEQUENCE, parameters);
+            delay_ms(1000);
+            printf("Switching to AT Mode...");
+            issue_AT_command(AT_MODE, parameters);
+            printf("Writing baudrate settings...");
+            issue_AT_command(CHANGE_BAUD, "3");
+            printf("Making sure changes save through power reset...");
+            issue_AT_command(SAVE_THROUGH_RESET, parameters);
+            printf("Verifying changes...");
+            issue_AT_command(READ_BAUD, parameters);
+            printf("Applying changes...");
+            issue_AT_command(APPLY_CHANGES, parameters);
+            printf("Matching PIC baudrate to XBee baudrate...\n");
+            break;
+        case BAUD_115200:
+            printf("Changing XBee baudrate to 115200 bps...\n");
+            delay_ms(1000);
+            printf("Sending AT Start Sequence...");
+            issue_AT_command(AT_START_SEQUENCE, parameters);
+            delay_ms(1000);
+            printf("Switching to AT Mode...");
+            issue_AT_command(AT_MODE, parameters);
+            printf("Writing baudrate settings...");
+            issue_AT_command(CHANGE_BAUD, "7");
+            printf("Making sure changes save through power reset...");
+            issue_AT_command(SAVE_THROUGH_RESET, parameters);
+            printf("Verifying changes...");
+            issue_AT_command(READ_BAUD, parameters);
+            printf("Applying changes...");
+            issue_AT_command(APPLY_CHANGES, parameters);
+            printf("Matching PIC baudrate to XBee baudrate...\n");
+            break;
+        default:
+            break;
+    }
+    
+    initUART1(baud_select); // consider putting this into non-volatile memory
+    
+    delay_ms(1000);
+    
+    printf("Exiting command mode...");
+    issue_AT_command(EXIT_COMMAND_MODE, parameters);
+    
+    printf("\n");
+    
+    return errorStatus;
+}
 void issue_AT_command(unsigned char command, unsigned char* parameters)
 {
     unsigned char outBuffer[25], messageLength, i;
@@ -114,6 +177,22 @@ void issue_AT_command(unsigned char command, unsigned char* parameters)
             outBuffer[1] = 'T';
             outBuffer[2] = 'A';
             outBuffer[3] = 'P';
+            outBuffer[4] = '\r';
+            break;
+        case SAVE_THROUGH_RESET:
+            messageLength = 5;
+            outBuffer[0] = 'A';
+            outBuffer[1] = 'T';
+            outBuffer[2] = 'W';
+            outBuffer[3] = 'R';
+            outBuffer[4] = '\r';
+            break;
+        case APPLY_CHANGES:
+            messageLength = 5;
+            outBuffer[0] = 'A';
+            outBuffer[1] = 'T';
+            outBuffer[2] = 'A';
+            outBuffer[3] = 'C';
             outBuffer[4] = '\r';
             break;
         case EXIT_COMMAND_MODE:
@@ -180,6 +259,15 @@ void issue_AT_command(unsigned char command, unsigned char* parameters)
             outBuffer[3] = 'D';
             outBuffer[4] = parameters[0];
             outBuffer[5] = '\r';
+            break;
+        case READ_BAUD:
+            messageLength = 5;
+            outBuffer[0] = 'A';
+            outBuffer[1] = 'T';
+            outBuffer[2] = 'B';
+            outBuffer[3] = 'D';
+            outBuffer[4] = '\r';
+            break;
         default:
             break;
     }
@@ -187,7 +275,7 @@ void issue_AT_command(unsigned char command, unsigned char* parameters)
     for(i = 0; i < messageLength; i++)
     {
         sendByte(outBuffer[i]);
-        if(broadcastTransmission)
+        if(broadcastTransmission) // if coordinator is in broadcast mode, then 
         {
             delay_ms(1); // be careful with this delay -- too long and you will time out of command mode
         }

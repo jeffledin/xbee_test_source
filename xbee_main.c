@@ -7,15 +7,12 @@
 
 #define _SUPPRESS_PLIB_WARNING 
 
-#define BAUD_9600   1
-#define BAUD_115200 2
-
 void init(void);
 void initTMR1(void);
 void initTMR2(void);
 void initIO(void);
-void initUART1(unsigned char baud_select);
-void initUART2(unsigned char baud_select);
+void initUART1(unsigned char baudrate);
+void initUART2(unsigned char baudrate);
 void delay_ms(unsigned int milliseconds);
 
 volatile struct bufferStruct receiveBuffer;
@@ -31,11 +28,17 @@ void main(void)
     printf("XBee S2C -- API Mode\n");
     printf("-------------------------\n");
 
-    changeOperatingMode(API_MODE_NO_ESCAPE);
+    //changeXBeeOperatingMode(AT_MODE); // go into AT Mode first to set a destination address and disable broadcast mode
+//    changeXBeeBaudrate(BAUD_9600);
+    changeXBeeOperatingMode(API_MODE_NO_ESCAPE);
+    
 
     createTransmitRequestFrame(frameBuffer, TRANSMIT_REQUEST, 0x01, 0x0013A200, 0x41632F8D, 0xFFFE, 0x00, 0x00, 
                                dataPayload, 8);
-    printf("Frame sent\n");
+    printf("Frame sent\n\n");
+
+    printf("Frame received\n");
+    
     while(1);
     
     //createAPIFrame(TRANSMIT_REQUEST, )
@@ -54,7 +57,7 @@ void init(void)
     initIO();
 //    initTMR1();
 //    initTMR2();
-    initUART1(BAUD_115200);
+    initUART1(BAUD_9600);
     initUART2(BAUD_115200);
     
     receiveBuffer.currentIndex = 0;
@@ -111,6 +114,8 @@ void initUART1(unsigned char baud_select)
     // XBee Interface
     // Baudrate Calculations for 115200 bps
     // U2BRG = (Fpb / (4 * Baud Rate)) - 1
+    U1MODEbits.ON = 0; // turn off UART module
+    
     switch(baud_select)
     {
         case BAUD_9600:
@@ -130,6 +135,7 @@ void initUART1(unsigned char baud_select)
     INTCONbits.MVEC = 1; // enable multi-vectored interrupts
     IPC6bits.U1IP = 1; // interrupt priority = 1
     IEC0bits.U1RXIE = 1; // enable receive interrupts
+    IEC0bits.U1TXIE = 0; // disable transmission interrupts
     IFS0bits.U1RXIF = 0; // reset interrupt flag
     IFS0bits.U1TXIF = 0; // reset interrupt flag
     U1STAbits.URXEN = 1; // enable RX
@@ -141,11 +147,13 @@ void initUART1(unsigned char baud_select)
     delay_ms(50);
 }
 
-void initUART2(unsigned char baud_select)
+void initUART2(unsigned char baudrate)
 {
     // Baudrate Calculations for 115200 bps
     // U2BRG = (Fpb / (4 * Baud Rate)) - 1
-    switch(baud_select)
+    U2MODEbits.ON = 0; // turn off UART module
+    
+    switch(baudrate)
     {
         case BAUD_9600:
             U2MODEbits.BRGH = 0;
