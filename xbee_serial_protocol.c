@@ -294,6 +294,11 @@ void issue_AT_command(unsigned char command, unsigned char* parameters)
     receiveBuffer.currentIndex = 0;
 }
 
+unsigned char processReceivedPacket(struct bufferStruct receiveBuffer)
+{
+    
+}
+
 void sendData(unsigned char* dataBuffer, unsigned char messageLength)
 {
     unsigned int i;

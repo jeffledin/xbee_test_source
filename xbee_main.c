@@ -28,16 +28,20 @@ void main(void)
     printf("XBee S2C -- API Mode\n");
     printf("-------------------------\n");
 
-    //changeXBeeOperatingMode(AT_MODE); // go into AT Mode first to set a destination address and disable broadcast mode
-//    changeXBeeBaudrate(BAUD_9600);
+//    changeXBeeOperatingMode(AT_MODE); // go into AT Mode first to set a destination address and disable broadcast mode
+//    changeXBeeBaudrate(BAUD_115200);
+    
     changeXBeeOperatingMode(API_MODE_NO_ESCAPE);
     
-
     createTransmitRequestFrame(frameBuffer, TRANSMIT_REQUEST, 0x01, 0x0013A200, 0x41632F8D, 0xFFFE, 0x00, 0x00, 
                                dataPayload, 8);
     printf("Frame sent\n\n");
-
-    printf("Frame received\n");
+    
+    while(!fullPacketReceived);
+    printf("Packet received\n");
+    
+    processReceivedPacket(receiveBuffer);
+    
     
     while(1);
     
@@ -57,7 +61,7 @@ void init(void)
     initIO();
 //    initTMR1();
 //    initTMR2();
-    initUART1(BAUD_9600);
+    initUART1(BAUD_115200);
     initUART2(BAUD_115200);
     
     receiveBuffer.currentIndex = 0;

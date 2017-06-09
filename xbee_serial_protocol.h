@@ -1,6 +1,8 @@
 #ifndef XBEE_SERIAL_PROTOCOL_H
 #define XBEE_SERIAL_PROTOCOL_H
 
+#define _SUPPRESS_PLIB_WARNING 
+
 #define AT_START_SEQUENCE 0
 #define EXIT_COMMAND_MODE 1
 #define GET_DESTINATION_ADDRESS_HIGH 2
@@ -32,6 +34,7 @@
 
 extern unsigned char broadcastTransmission, operatingMode;
 extern volatile unsigned char receiveFlag;
+extern volatile unsigned char fullPacketReceived;
 
 extern struct bufferStruct
 {
@@ -51,6 +54,7 @@ unsigned char createAPIFrame(unsigned char frameType, unsigned char frameID, uns
 unsigned char createTransmitRequestFrame(unsigned char frameBuffer[], unsigned char frameType, unsigned char frameID, unsigned int destinationAddrHigh, unsigned int destinationAddrLow,
                                          unsigned int destinationNtwkAddr, unsigned char broadcastRadius, unsigned char options, unsigned char dataPayload[],
                                          unsigned char numDataPayloadBytes);
+unsigned char processReceivedPacket(struct bufferStruct receiveBuffer);
 
 #endif
 
