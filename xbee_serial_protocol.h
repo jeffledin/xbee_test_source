@@ -49,12 +49,13 @@ void issue_AT_command(unsigned char command, unsigned char* parameters);
 void sendData(unsigned char* dataBuffer, unsigned char messageLength);
 void sendByte(unsigned char dataByte);
 unsigned char readByte();
+unsigned char verifyChecksum();
 unsigned char calculateChecksum(unsigned char* data, unsigned char length);
 unsigned char createAPIFrame(unsigned char frameType, unsigned char frameID, unsigned char frameParameters[], unsigned char frameParametersLength);
 unsigned char createTransmitRequestFrame(unsigned char frameBuffer[], unsigned char frameType, unsigned char frameID, unsigned int destinationAddrHigh, unsigned int destinationAddrLow,
                                          unsigned int destinationNtwkAddr, unsigned char broadcastRadius, unsigned char options, unsigned char dataPayload[],
                                          unsigned char numDataPayloadBytes);
-unsigned char processReceivedPacket(struct bufferStruct receiveBuffer);
+unsigned char processReceivedPacket();
 
 #endif
 

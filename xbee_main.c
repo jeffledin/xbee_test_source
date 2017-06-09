@@ -40,7 +40,7 @@ void main(void)
     while(!fullPacketReceived);
     printf("Packet received\n");
     
-    processReceivedPacket(receiveBuffer);
+    processReceivedPacket();
     
     
     while(1);

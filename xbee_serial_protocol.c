@@ -3,6 +3,7 @@
 
 unsigned char broadcastTransmission = 1, operatingMode;
 volatile struct bufferStruct receiveBuffer;
+volatile unsigned int receivedPacketLength;
 
 // TODO: Return error if verification fails
 unsigned char changeXBeeOperatingMode(unsigned char mode)
@@ -294,9 +295,17 @@ void issue_AT_command(unsigned char command, unsigned char* parameters)
     receiveBuffer.currentIndex = 0;
 }
 
-unsigned char processReceivedPacket(struct bufferStruct receiveBuffer)
+unsigned char processReceivedPacket()
 {
-    
+    if(verifyChecksum())
+    {
+        printf("Received packet has correct checksum\n");
+    }
+    else
+    {
+        printf("ERROR: Received packet does not have correct checksum\n");
+        // return error
+    }
 }
 
 void sendData(unsigned char* dataBuffer, unsigned char messageLength)
@@ -380,6 +389,22 @@ unsigned char createTransmitRequestFrame(unsigned char frameBuffer[], unsigned c
     }
     
     sendData(frameBuffer, bufferIndex);
+}
+
+// Add all bytes of the packet, except start delimiter and the length. Keep lowest 8 bits. Result must be 0xFF to be success.
+unsigned char verifyChecksum()
+{
+    unsigned char sum = 0;
+    unsigned int i;
+    
+    for(i = 3; i < receivedPacketLength + 4; i++) 
+    {
+        sum += receiveBuffer.buffer[i];
+    }
+    
+    //printf("Sum is %d\n", sum);
+    if(sum == 0xFF) return 1;
+    else return 0;
 }
 
 // Add all bytes of the packet, except start delimiter and the length. Keep lowest 8 bits. Subtract from 0xFF.

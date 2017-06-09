@@ -80,7 +80,7 @@ void receiverFSM(void)
             else
             {
                 fullPacketReceived = 1;
-                printf("Checksum: 0x%.2X\n", receiveBuffer.buffer[receiveBuffer.currentIndex]);
+                printf("Checksum: 0x%.2X\n/n", receiveBuffer.buffer[receiveBuffer.currentIndex]);
                 state = OPEN_FLAG_QUERY_STATE;
             }
             ++localByteCount;
