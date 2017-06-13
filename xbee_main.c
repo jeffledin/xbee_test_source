@@ -33,14 +33,24 @@ void main(void)
     
     changeXBeeOperatingMode(API_MODE_NO_ESCAPE);
     
-    createTransmitRequestFrame(frameBuffer, TRANSMIT_REQUEST, 0x01, 0x0013A200, 0x41632F8D, 0xFFFE, 0x00, 0x00, 
-                               dataPayload, 8);
-    printf("Frame sent\n\n");
+    while(1)
+    {
+//        createTransmitRequestFrame(frameBuffer, TRANSMIT_REQUEST, 0x01, 0x0013A200, 0x41632F8D, 0xFFFE, 0x00, 0x00, 
+//                               dataPayload, 8);
+//    
+//        printf("Frame sent\n\n");
+
+        while(!fullPacketReceived);
+        fullPacketReceived = 0;
+        receiveBuffer.numBytes = 0;
+        receiveBuffer.currentIndex = 0;
+        printf("Packet received\n");
+
+        processReceivedPacket();
+        
+        delay_ms(2000);
+    }
     
-    while(!fullPacketReceived);
-    printf("Packet received\n");
-    
-    processReceivedPacket();
     
     
     while(1);

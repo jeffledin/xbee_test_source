@@ -28,7 +28,7 @@ void __ISR(_UART_1_VECTOR, ipl1) UART1Interrupt()
                 if(receiveBuffer.buffer[receiveBuffer.currentIndex] == '\r') receiveFlag = 1; 
                 break;
             case API_MODE_NO_ESCAPE:
-                printf("0x%.2X\n", receiveBuffer.buffer[receiveBuffer.currentIndex]);
+                //printf("0x%.2X\n", receiveBuffer.buffer[receiveBuffer.currentIndex]);
                 receiverFSM();
                 break;
             case API_MODE_WITH_ESCAPE:
@@ -64,6 +64,7 @@ void receiverFSM(void)
             }
             else if(currentFieldBytes == 1)
             {
+                currentFieldBytes = 0;
                 receivedPacketLength &= 0xFF00;
                 receivedPacketLength |= receiveBuffer.buffer[receiveBuffer.currentIndex];
                 //printf("Received message length: %d\n", receivedMessageLength);
@@ -75,15 +76,16 @@ void receiverFSM(void)
             unsigned static char localByteCount = 0;
             if(localByteCount < receivedPacketLength) 
             {
+                ++localByteCount;
                 state = GENERIC_RECEIVE_STATE;
             }
             else
             {
+                localByteCount = 0;
                 fullPacketReceived = 1;
-                printf("Checksum: 0x%.2X\n/n", receiveBuffer.buffer[receiveBuffer.currentIndex]);
+                printf("Checksum: 0x%.2X\n", receiveBuffer.buffer[receiveBuffer.currentIndex]);
                 state = OPEN_FLAG_QUERY_STATE;
             }
-            ++localByteCount;
             break;
         }
         default:

@@ -38,7 +38,7 @@ extern volatile unsigned char fullPacketReceived;
 
 extern struct bufferStruct
 {
-    unsigned char buffer[128];
+    unsigned char buffer[32];
     unsigned char numBytes;
     unsigned char currentIndex;
 };

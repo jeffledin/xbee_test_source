@@ -382,11 +382,11 @@ unsigned char createTransmitRequestFrame(unsigned char frameBuffer[], unsigned c
     }
     frameBuffer[bufferIndex++] = calculateChecksum(frameBuffer, length);
     
-    printf("Constructed Frame: \n");
-    for(i = 0; i < bufferIndex; i++)
-    {
-        printf("0x%.2X\n", frameBuffer[i]);
-    }
+//    printf("Constructed Frame: \n");
+//    for(i = 0; i < bufferIndex; i++)
+//    {
+//        printf("0x%.2X\n", frameBuffer[i]);
+//    }
     
     sendData(frameBuffer, bufferIndex);
 }
